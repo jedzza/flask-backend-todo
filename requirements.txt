@@ -1,0 +1,11 @@
+flask
+datetime
+flask_jwt_extended
+pymongo
+flask_cors
+pydantic
+flask-pydantic
+pydantic[email]
+python-dotenv
+flask-mail
+flask-bcrypt
