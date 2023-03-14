@@ -2,6 +2,7 @@ import hashlib
 import datetime
 
 from bin.models.PasswordResetModel import PasswordResetModel
+from bin.models.TaskModel import TaskModel
 from bin.services.LoginChecker import login_required, reset_permitted
 import os
 from flask import Flask, request, jsonify, render_template
@@ -90,6 +91,18 @@ def updateTasks(body: TaskListModel):
     return jsonify({'msg': 'tasks updated successfully'})
 
 
+@app.route("/todo/newtask", endpoint='newtask', methods=["POST"])
+@login_required()
+@validate()
+def newTask(body: TaskModel):
+    user = get_jwt_identity()
+    tasks = users_collection.find_one({"email": user})
+    users_collection.update_one({"email": user}, {"$push": {"tasks.tasks": body.dict()}})
+    return jsonify({'description': body.description,
+                    'done': body.done,
+                    'started': body.started.isoformat()}), 200
+
+
 @app.route("/todo/returntasks", endpoint='returnTasks', methods=["GET"])
 @login_required()
 def returnTasks():
@@ -101,7 +114,7 @@ def returnTasks():
         tasks = tasks
     else:
         print("in the else statement!")
-        tasks = jsonify({"tasks": [{"description": "this is an example task"}]})
+        tasks = jsonify({"tasks": [{"description": "this is an example task", "done": False, "started": datetime.datetime.now().isoformat()}]})
     return tasks
 
 
