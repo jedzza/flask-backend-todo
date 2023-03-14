@@ -38,8 +38,9 @@ jwt = JWTManager(app)
 app.config['JWT_SECRET_KEY'] = SECRET_KEY
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(days=1)
 client = MongoClient(CONNECTION_STRING)
-db = client["todoapp-dev"]
+db = client.get_database("todoapp-dev")
 users_collection = db["users"]
+print(CONNECTION_STRING)
 
 
 @app.route("/todo/register", methods=["POST", "OPTIONS"])
@@ -47,6 +48,7 @@ users_collection = db["users"]
 def register(body: LoginModel):
     new_user = body  # store the json body request
     new_user.password = hashlib.sha256(body.password.encode("utf-8")).hexdigest()  # encrpt password
+
     doc = users_collection.find_one({"email": new_user.email})  # check if user exist
     if not doc:
         users_collection.insert_one(new_user.dict())
@@ -65,13 +67,14 @@ def login(body: LoginModel):
         encrypted_password = hashlib.sha256(login_details.password.encode("utf-8")).hexdigest()
         if encrypted_password == user_from_db['password']:
             additional_claims = {"logged_in": "true"}
-            access_token = create_access_token(identity=user_from_db['email'], additional_claims=additional_claims)  # create jwt token
+            access_token = create_access_token(identity=user_from_db['email'],
+                                               additional_claims=additional_claims)  # create jwt token
             return jsonify(access_token=access_token), 200
 
     return jsonify({'msg': 'The username or password is incorrect'}), 401
 
 
-@app.route("/todo/updatetasks", endpoint='updateTasks', methods=["POST", "OPTIONS"])
+@app.route("/todo/updatetasks", endpoint='updateTasks', methods=["PUT", "OPTIONS"])
 @login_required()
 @validate()
 def updateTasks(body: TaskListModel):
@@ -92,8 +95,14 @@ def updateTasks(body: TaskListModel):
 def returnTasks():
     current_user = get_jwt_identity()
     doc = users_collection.find_one({"email": current_user})
-    tasks = doc["tasks"]
-    return jsonify(tasks['tasks'])
+    tasks = doc.get("tasks")
+    print(tasks)
+    if tasks:
+        tasks = tasks
+    else:
+        print("in the else statement!")
+        tasks = jsonify({"tasks": [{"description": "this is an example task"}]})
+    return tasks
 
 
 @app.route("/todo/user", endpoint='user', methods=["GET"])
@@ -145,7 +154,8 @@ def forgot(body: ForgotModel):
                html_body=render_template("email/reset_password.html",
                                          code=reset_string))
     additional_claims = {"logged_in": "false"}
-    access_token = create_access_token(identity=user_from_db['email'], additional_claims=additional_claims)  # create jwt token
+    access_token = create_access_token(identity=user_from_db['email'],
+                                       additional_claims=additional_claims)  # create jwt token
     return jsonify(access_token=access_token), 200
 
 
@@ -184,7 +194,7 @@ def reset_password(body: PasswordResetModel):
     query = {"email": user_from_db["email"]}
     code_used_update = {"$set": {"reset data": {"used": True}}}
     users_collection.update_one(query, code_used_update)
-    new_password =  hashlib.sha256(body.password.encode("utf-8")).hexdigest()
+    new_password = hashlib.sha256(body.password.encode("utf-8")).hexdigest()
     new_values = {"$set": {"password": new_password}}
     users_collection.update_one(query, new_values)
     return jsonify({'msg': 'reset email sent'}), 200
