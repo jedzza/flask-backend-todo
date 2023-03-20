@@ -99,8 +99,8 @@ def newTask(body: TaskModel):
     tasks = users_collection.find_one({"email": user})
     users_collection.update_one({"email": user}, {"$push": {"tasks.tasks": body.dict()}})
     return jsonify({'description': body.description,
-                    'done': body.done,
-                    'started': body.started.isoformat()}), 200
+                    'complete': body.complete,
+                    'started': body.started}), 200
 
 
 @app.route("/todo/returntasks", endpoint='returnTasks', methods=["GET"])
@@ -114,7 +114,7 @@ def returnTasks():
         tasks = tasks
     else:
         print("in the else statement!")
-        tasks = jsonify({"tasks": [{"description": "this is an example task", "done": False, "started": datetime.datetime.now().isoformat()}]})
+        tasks = jsonify({"tasks": [{"description": "this is an example task", "complete": False, "started": datetime.datetime.now().isoformat()}]})
     return tasks
 
 
