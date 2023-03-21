@@ -7,4 +7,5 @@ class TaskModel(BaseModel):
     description: str
     complete: bool
     started: str
+    uuid: str
 

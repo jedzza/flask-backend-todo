@@ -99,9 +99,18 @@ def newTask(body: TaskModel):
     tasks = users_collection.find_one({"email": user})
     users_collection.update_one({"email": user}, {"$push": {"tasks.tasks": body.dict()}})
     return jsonify({'description': body.description,
+                    'uuid': body.uuid,
                     'complete': body.complete,
                     'started': body.started}), 200
 
+
+@app.route("/todo/deletetask", endpoint='deletetask', methods=["PUT"])
+@login_required()
+@validate()
+def deleteTask(body: TaskModel):
+    user = get_jwt_identity()
+    users_collection.update_one({"email": user}, {"$pull": {"tasks.tasks.uuid": body.uuid}})
+    return jsonify({"msg": "deleted successfully"}), 200
 
 @app.route("/todo/returntasks", endpoint='returnTasks', methods=["GET"])
 @login_required()
@@ -114,7 +123,7 @@ def returnTasks():
         tasks = tasks
     else:
         print("in the else statement!")
-        tasks = jsonify({"tasks": [{"description": "this is an example task", "complete": False, "started": datetime.datetime.now().isoformat()}]})
+        tasks = jsonify({"tasks": [{"description": "this is an example task", "complete": False, "started": datetime.datetime.now().isoformat(), "uuid": "not-a-uuid"}]})
     return tasks
 
 
