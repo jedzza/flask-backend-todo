@@ -78,7 +78,7 @@ def login(body: LoginModel):
 @app.route("/todo/updatetasks", endpoint='updateTasks', methods=["PUT", "OPTIONS"])
 @login_required()
 @validate()
-def updateTasks(body: TaskListModel):
+def update_tasks(body: TaskListModel):
     request_data = request.json
     current_user = get_jwt_identity()
     doc = users_collection.find_one({"email": current_user})
@@ -94,7 +94,7 @@ def updateTasks(body: TaskListModel):
 @app.route("/todo/newtask", endpoint='newtask', methods=["POST"])
 @login_required()
 @validate()
-def newtask(body: TaskModel):
+def new_task(body: TaskModel):
     user = get_jwt_identity()
     tasks = users_collection.find_one({"email": user})
     users_collection.update_one({"email": user}, {"$push": {"tasks": body.dict()}})
@@ -107,7 +107,7 @@ def newtask(body: TaskModel):
 @app.route("/todo/newproject", endpoint='newproject', methods=["POST"])
 @login_required()
 @validate()
-def newproject(body: TaskModel):
+def new_project(body: TaskModel):
     user = get_jwt_identity()
     tasks = users_collection.find_one({"email": user})
     users_collection.update_one({"email": user}, {"$push": {"project": body.dict()}})
@@ -120,7 +120,7 @@ def newproject(body: TaskModel):
 @app.route("/todo/deletetask", endpoint='deletetask', methods=["PUT"])
 @login_required()
 @validate()
-def deleteTask(body: TaskModel):
+def delete_task(body: TaskModel):
     user = get_jwt_identity()
     print(body.uuid)
     users_collection.update_one({"email": user}, {"$pull": {"tasks": {"uuid": body.uuid}}})
@@ -130,7 +130,7 @@ def deleteTask(body: TaskModel):
 @app.route("/todo/deleteproject", endpoint='deleteproject', methods=["PUT"])
 @login_required()
 @validate()
-def deleteProject(body: TaskModel):
+def delete_project(body: TaskModel):
     user = get_jwt_identity()
     print(body.uuid)
     users_collection.update_one({"email": user}, {"$pull": {"projects": {"uuid": body.uuid}}})
@@ -140,7 +140,7 @@ def deleteProject(body: TaskModel):
 @app.route("/todo/updatetask", endpoint='updatetask', methods=["PUT"])
 @login_required()
 @validate()
-def updateTask(body: TaskModel):
+def update_task(body: TaskModel):
     user = get_jwt_identity()
     print(body.uuid)
     users_collection.update_one({"email": user}, {"$pull": {"tasks": {"uuid": body.uuid}}})
@@ -150,7 +150,7 @@ def updateTask(body: TaskModel):
 @app.route("/todo/updateproject", endpoint='updateproject', methods=["PUT"])
 @login_required()
 @validate()
-def updateTask(body: TaskModel):
+def update_task(body: TaskModel):
     user = get_jwt_identity()
     print(body.uuid)
     users_collection.update_one({"email": user}, {"$pull": {"projects": {"uuid": body.uuid}}})
@@ -159,7 +159,7 @@ def updateTask(body: TaskModel):
 
 @app.route("/todo/returntasks", endpoint='returnTasks', methods=["GET"])
 @login_required()
-def returnTasks():
+def return_tasks():
     current_user = get_jwt_identity()
     doc = users_collection.find_one({"email": current_user})
     tasks = doc.get("tasks")
@@ -173,7 +173,7 @@ def returnTasks():
 
 @app.route("/todo/returnprojects", endpoint='returnProjects', methods=["GET"])
 @login_required()
-def returnProjects():
+def return_projects():
     current_user = get_jwt_identity()
     doc = users_collection.find_one({"email": current_user})
     tasks = doc.get("projects")
